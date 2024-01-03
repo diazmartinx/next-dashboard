@@ -9,21 +9,23 @@ import {
   Revenue,
 } from './definitions';
 import { formatCurrency } from './utils';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export async function fetchRevenue() {
   // Add noStore() here prevent the response from being cached.
   // This is equivalent to in fetch(..., {cache: 'no-store'}).
+  noStore();
 
   try {
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
 
-    // console.log('Fetching revenue data...');
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    console.log('Fetching revenue data...');
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     const data = await sql<Revenue>`SELECT * FROM revenue`;
 
-    // console.log('Data fetch completed after 3 seconds.');
+    console.log('Data fetch completed after 3 seconds.');
 
     return data.rows;
   } catch (error) {
@@ -34,6 +36,7 @@ export async function fetchRevenue() {
 
 export async function fetchLatestInvoices() {
   try {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const data = await sql<LatestInvoiceRaw>`
       SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
       FROM invoices
@@ -227,5 +230,25 @@ export async function getUser(email: string) {
   } catch (error) {
     console.error('Failed to fetch user:', error);
     throw new Error('Failed to fetch user.');
+  }
+}
+
+export async function fetchInvoiceCount() {
+  try {
+    const data = await sql`SELECT COUNT(*) FROM invoices`;
+    return Number(data.rows[0].count);
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch invoice count.');
+  }
+}
+
+export async function fetchCustomerCount() {
+  try {
+    const data = await sql`SELECT COUNT(*) FROM customers`;
+    return Number(data.rows[0].count);
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch customer count.');
   }
 }
